@@ -1,0 +1,13 @@
+# Fonts
+font-family = Hack Nerd Font Mono
+font-size = 16
+
+# Theme
+# theme = dark:Catppuccin Mocha,light:Catppuccin Latte
+# theme = Catppuccin Latte
+theme = Catppuccin Mocha
+cursor-style = block
+
+# Features
+copy-on-select = clipboard
+
