@@ -6,33 +6,34 @@ DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 log()  { printf '[dotfiles] %s\n' "$*"; }
 warn() { printf '[dotfiles] WARNING: %s\n' "$*" >&2; }
 
-apt_cmd() {
-    if [ "$(id -u)" = "0" ]; then
-        apt-get "$@"
+SUDO=""
+if [ "$(id -u)" != "0" ]; then
+    if command -v sudo >/dev/null 2>&1; then
+        SUDO="sudo"
     else
-        sudo apt-get "$@"
+        warn "Not running as root and sudo not available — apt installs will likely fail"
     fi
-}
+fi
 
 install_packages() {
     if command -v apt-get >/dev/null 2>&1; then
-        log "Updating apt..."
-        apt_cmd update -qq
+        log "Updating apt lists..."
+        $SUDO apt-get update -qq
 
         command -v rg >/dev/null 2>&1 \
             && log "ripgrep already installed" \
-            || { log "Installing ripgrep..."; apt_cmd install -y --no-install-recommends ripgrep; }
+            || { log "Installing ripgrep..."; $SUDO apt-get install -y --no-install-recommends ripgrep; }
 
         if ! command -v fd >/dev/null 2>&1 && ! command -v fdfind >/dev/null 2>&1; then
             log "Installing fd-find..."
-            apt_cmd install -y --no-install-recommends fd-find
+            $SUDO apt-get install -y --no-install-recommends fd-find
         else
             log "fd already available"
         fi
 
         # telescope-fzf-native requires make + gcc to compile
-        command -v make >/dev/null 2>&1 || apt_cmd install -y --no-install-recommends make
-        command -v gcc  >/dev/null 2>&1 || apt_cmd install -y --no-install-recommends gcc
+        command -v make >/dev/null 2>&1 || $SUDO apt-get install -y --no-install-recommends make
+        command -v gcc  >/dev/null 2>&1 || $SUDO apt-get install -y --no-install-recommends gcc
 
     elif command -v brew >/dev/null 2>&1; then
         command -v rg >/dev/null 2>&1 || brew install ripgrep
@@ -132,8 +133,8 @@ setup_nvim_plugins() {
 
 main() {
     log "Starting dotfiles install from $DOTFILES_DIR (user: $(id -un))"
-    install_packages
-    setup_fd_symlink
+    # install_packages
+    # setup_fd_symlink
     setup_nvim
     setup_tmux
     setup_git
