@@ -1,9 +1,2 @@
+-- bootstrap lazy.nvim, LazyVim and your plugins
 require("config.lazy")
-require("config.conform")
-require("config.cmp")
-require("config.gruvbox")
-require("config.harpoon")
-require("config.keybindings")
-require("config.lspconfig")
-require("config.set")
-require("config.telescope")
