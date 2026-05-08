@@ -4,7 +4,3 @@ alias vim='nvim'
 alias v='nvim'
 alias gprune='git checkout main && git fetch --prune && git pull --rebase origin HEAD && git branch -l | xargs git branch -D'
 
-# eza install is non-fatal, so only alias ls if it's actually present
-command -v eza >/dev/null 2>&1 && alias ls='eza -lha --icons=auto'
-
-command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init bash --cmd cd)"
