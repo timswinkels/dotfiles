@@ -98,23 +98,38 @@ setup_git() {
     log "Symlinked: $dst -> $src"
 }
 
+detect_tz() {
+    local tz=""
+    if [ -L /etc/localtime ]; then
+        tz="$(readlink /etc/localtime)"
+        tz="${tz#*zoneinfo/}"
+    fi
+    case "$tz" in
+        ""|/etc/localtime|UTC|Etc/UTC) tz="Europe/Amsterdam" ;;
+    esac
+    printf '%s' "$tz"
+}
+
 setup_zsh() {
-    local src="$DOTFILES_DIR/zsh/.zshrc"
     local dst="$HOME/.zshrc"
-    if [ ! -f "$src" ]; then
-        warn "zsh/.zshrc not found, skipping"
+    local marker="# >>> dotfiles-managed (devcontainer_install.sh) >>>"
+    if [ -f "$dst" ] && grep -qF "$marker" "$dst"; then
+        log ".zshrc already has dotfiles-managed block, skipping"
         return 0
     fi
-    if [ -e "$dst" ] || [ -L "$dst" ]; then
-        if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$src" ]; then
-            log ".zshrc symlink already correct"
-            return 0
-        fi
-        warn "Backing up existing $dst to ${dst}.bak"
-        mv "$dst" "${dst}.bak"
-    fi
-    ln -sf "$src" "$dst"
-    log "Symlinked: $dst -> $src"
+    local tz
+    tz="$(detect_tz)"
+    cat >> "$dst" <<EOF
+
+# >>> dotfiles-managed (devcontainer_install.sh) >>>
+export TZ='${tz}'
+alias vim="nvim"
+alias v="nvim"
+alias ls="ls -la"
+eval "\$(zoxide init zsh --cmd cd)"
+# <<< dotfiles-managed (devcontainer_install.sh) <<<
+EOF
+    log "Appended dotfiles-managed block to $dst (TZ=$tz)"
 }
 
 setup_nvim_plugins() {
@@ -137,7 +152,7 @@ main() {
     setup_nvim
     setup_tmux
     setup_git
-    # setup_zsh
+    setup_zsh
     setup_nvim_plugins
     log "Done."
     [ -L "$HOME/.config/nvim" ] && log "  nvim config: symlinked OK" || warn "  nvim config: NOT symlinked"
