@@ -50,3 +50,5 @@ source <(fzf --zsh)
 # Zoxide for fast navigation
 eval "$(zoxide init zsh --cmd cd)"
 
+# Direnv for
+eval "$(direnv hook zsh)"
