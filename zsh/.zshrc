@@ -41,7 +41,11 @@ source $ZSH/oh-my-zsh.sh
 alias vim="nvim"
 alias v="nvim"
 alias gprune="git checkout main && git fetch --prune && git pull --rebase origin HEAD && git branch -l | xargs git branch -D"
+alias ls='eza -lha --icons=auto'
 
 # Set up fzf key bindings and fuzzy completion
 source <(fzf --zsh)
+
+# Zoxide for fast navigation
+eval "$(zoxide init zsh --cmd cd)"
 

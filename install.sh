@@ -16,32 +16,38 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 install_packages() {
-    if command -v apt-get >/dev/null 2>&1; then
-        log "Updating apt lists..."
-        $SUDO apt-get update -qq
-
-        command -v rg >/dev/null 2>&1 \
-            && log "ripgrep already installed" \
-            || { log "Installing ripgrep..."; $SUDO apt-get install -y --no-install-recommends ripgrep; }
-
-        if ! command -v fd >/dev/null 2>&1 && ! command -v fdfind >/dev/null 2>&1; then
-            log "Installing fd-find..."
-            $SUDO apt-get install -y --no-install-recommends fd-find
-        else
-            log "fd already available"
-        fi
-
-        # telescope-fzf-native requires make + gcc to compile
-        command -v make >/dev/null 2>&1 || $SUDO apt-get install -y --no-install-recommends make
-        command -v gcc  >/dev/null 2>&1 || $SUDO apt-get install -y --no-install-recommends gcc
-
-    elif command -v brew >/dev/null 2>&1; then
-        command -v rg >/dev/null 2>&1 || brew install ripgrep
-        command -v fd >/dev/null 2>&1 || brew install fd
-
-    else
-        warn "No supported package manager found — skipping package installation"
+    if ! command -v apt-get >/dev/null 2>&1; then
+        warn "apt-get not found — this script targets Debian/Ubuntu Linux"
+        return 1
     fi
+
+    log "Updating apt lists..."
+    $SUDO apt-get update -qq
+
+    command -v rg >/dev/null 2>&1 \
+        && log "ripgrep already installed" \
+        || { log "Installing ripgrep..."; $SUDO apt-get install -y --no-install-recommends ripgrep; }
+
+    if ! command -v fd >/dev/null 2>&1 && ! command -v fdfind >/dev/null 2>&1; then
+        log "Installing fd-find..."
+        $SUDO apt-get install -y --no-install-recommends fd-find
+    else
+        log "fd already available"
+    fi
+
+    command -v zoxide >/dev/null 2>&1 \
+        && log "zoxide already installed" \
+        || { log "Installing zoxide..."; $SUDO apt-get install -y --no-install-recommends zoxide; }
+
+    # eza only landed in Debian 13 / Ubuntu 24.04 repos — make it non-fatal so
+    # older base images don't break the whole install.
+    command -v eza >/dev/null 2>&1 \
+        && log "eza already installed" \
+        || { log "Installing eza..."; $SUDO apt-get install -y --no-install-recommends eza || warn "eza not available in this apt repo — skipping"; }
+
+    # nvim's telescope-fzf-native requires make + gcc to compile
+    command -v make >/dev/null 2>&1 || $SUDO apt-get install -y --no-install-recommends make
+    command -v gcc  >/dev/null 2>&1 || $SUDO apt-get install -y --no-install-recommends gcc
 }
 
 setup_fd_symlink() {
@@ -118,6 +124,47 @@ setup_git() {
     log "Symlinked: $dst -> $src"
 }
 
+setup_bash() {
+    local src="$DOTFILES_DIR/bash/bashrc.dotfiles"
+    local dst="$HOME/.bashrc"
+    local marker="# >>> dotfiles >>>"
+    if [ ! -f "$src" ]; then
+        warn "bash/bashrc.dotfiles not found, skipping"
+        return 0
+    fi
+    [ -f "$dst" ] || touch "$dst"
+    if grep -qF "$marker" "$dst"; then
+        log ".bashrc dotfiles block already present"
+        return 0
+    fi
+    cat >> "$dst" <<EOF
+
+# >>> dotfiles >>>
+[ -f "$src" ] && source "$src"
+# <<< dotfiles <<<
+EOF
+    log "Appended dotfiles block to $dst (sourcing $src)"
+}
+
+setup_zsh() {
+    local src="$DOTFILES_DIR/zsh/.zshrc"
+    local dst="$HOME/.zshrc"
+    if [ ! -f "$src" ]; then
+        warn "zsh/.zshrc not found, skipping"
+        return 0
+    fi
+    if [ -e "$dst" ] || [ -L "$dst" ]; then
+        if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$src" ]; then
+            log ".zshrc symlink already correct"
+            return 0
+        fi
+        warn "Backing up existing $dst to ${dst}.bak"
+        mv "$dst" "${dst}.bak"
+    fi
+    ln -sf "$src" "$dst"
+    log "Symlinked: $dst -> $src"
+}
+
 setup_nvim_plugins() {
     if ! command -v nvim >/dev/null 2>&1; then
         log "nvim not in PATH — plugins will install on first launch"
@@ -133,11 +180,13 @@ setup_nvim_plugins() {
 
 main() {
     log "Starting dotfiles install from $DOTFILES_DIR (user: $(id -un))"
-    # install_packages
-    # setup_fd_symlink
+    install_packages
+    setup_fd_symlink
     setup_nvim
     setup_tmux
     setup_git
+    setup_bash
+    setup_zsh
     setup_nvim_plugins
     log "Done."
     log "  rg:   $(command -v rg   >/dev/null 2>&1 && rg   --version | head -1 || echo NOT FOUND)"
