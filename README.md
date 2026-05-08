@@ -59,10 +59,11 @@ devcontainer up \
   --dotfiles-install-command install.sh
 ```
 
-What it does:
+The script targets Debian/Ubuntu Linux (uses `apt-get`). What it does:
 
-- Installs `ripgrep` and `fd` via the available package manager.
-- Symlinks `nvim/.config/nvim` → `~/.config/nvim`, `tmux/.config/tmux` → `~/.config/tmux`, and `git/.gitconfig` → `~/.gitconfig` (existing files are backed up to `*.bak`).
+- Installs `ripgrep`, `fd` (falling back to `fd-find` + a `~/.local/bin/fd` symlink on Debian/Ubuntu), `zoxide`, `eza`, plus `make` and `gcc` (needed to compile `telescope-fzf-native`) via `apt-get`. `eza` only ships in Debian 13 / Ubuntu 24.04+ repos, so its install is non-fatal — older base images skip it with a warning.
+- Symlinks `nvim/.config/nvim` → `~/.config/nvim`, `tmux/.config/tmux` → `~/.config/tmux`, `git/.gitconfig` → `~/.gitconfig`, and `zsh/.zshrc` → `~/.zshrc` (existing files are backed up to `*.bak`).
+- Appends a marker-guarded `source` block to `~/.bashrc` that pulls in `bash/bashrc.dotfiles` (aliases + `zoxide init`). The container's default `~/.bashrc` is preserved.
 - Headlessly pre-installs nvim plugins via `Lazy! sync` so the first launch is fast.
 
-The script is idempotent — re-running leaves correct symlinks alone.
+The script is idempotent — re-running leaves correct symlinks alone and won't double-append the bash source block.
