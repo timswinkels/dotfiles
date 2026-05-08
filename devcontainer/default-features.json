@@ -1,4 +1,5 @@
 {
+  "ghcr.io/devcontainer-community/devcontainer-features/tree-sitter:1": {},
   "ghcr.io/duduribeiro/devcontainer-features/neovim:1": {},
   "ghcr.io/jsburckhardt/devcontainer-features/fd:1": {},
   "ghcr.io/jsburckhardt/devcontainer-features/fzf:1": {},
