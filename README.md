@@ -65,7 +65,7 @@ The script targets Debian/Ubuntu Linux (uses `apt-get`). What it does:
 - Symlinks `nvim/.config/nvim` → `~/.config/nvim`, `tmux/.config/tmux` → `~/.config/tmux`, `git/.gitconfig` → `~/.gitconfig`, and `zsh/.zshrc` → `~/.zshrc` (existing files are backed up to `*.bak`).
 - Headlessly pre-installs nvim plugins via `Lazy! sync` so the first launch is fast.
 
-The script is idempotent — re-running leaves correct symlinks alone and won't double-append the bash source block.
+The script is idempotent — re-running leaves correct symlinks alone.
 
 ### Devcontainer shortcuts
 
