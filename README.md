@@ -67,3 +67,13 @@ The script targets Debian/Ubuntu Linux (uses `apt-get`). What it does:
 - Headlessly pre-installs nvim plugins via `Lazy! sync` so the first launch is fast.
 
 The script is idempotent — re-running leaves correct symlinks alone and won't double-append the bash source block.
+
+### Devcontainer shortcuts
+
+`zsh/.zshrc` defines three aliases that wrap the `devcontainer` CLI with the right flags per subcommand:
+
+- `dcbuild` → `devcontainer build` with `--additional-features` (tools baked into the image)
+- `dcup`    → `devcontainer up` with the dotfiles flags (per-user shell config & symlinks)
+- `dcexec`  → `devcontainer exec` (pure shorthand)
+
+The default features list lives in `devcontainer/default-features.json` — edit that file to change what gets baked in. The `dcbuild` alias re-reads it on every invocation. This mirrors what VS Code's `dev.containers.defaultFeatures` setting does, but on the CLI.

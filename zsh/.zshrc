@@ -52,3 +52,11 @@ eval "$(zoxide init zsh --cmd cd)"
 
 # Direnv for
 eval "$(direnv hook zsh)"
+
+# Devcontainer shortcuts
+# `dcbuild` bakes user tools into the image via additional features.
+# `dcup` brings the container up and pulls user shell config via dotfiles.
+# Edit ~/dotfiles/devcontainer/default-features.json to change defaults.
+alias dcbuild='devcontainer build --additional-features "$(cat ~/dotfiles/devcontainer/default-features.json)"'
+alias dcup='devcontainer up --dotfiles-repository https://github.com/timswinkels/dotfiles --dotfiles-target-path ~/dotfiles --dotfiles-install-command devcontainer/install.sh'
+alias dcexec='devcontainer exec'
