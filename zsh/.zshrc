@@ -63,4 +63,26 @@ eval "$(mise activate zsh)"
 alias dc-build='devcontainer build'
 alias dc-up='devcontainer up --dotfiles-repository https://github.com/timswinkels/dotfiles --dotfiles-target-path \~/dotfiles --dotfiles-install-command devcontainer_install.sh --additional-features "$(cat ~/dotfiles/devcontainer/default-features.json | jq -c)"'
 alias dc-exec='devcontainer exec'
-alias dc='devcontainer exec /bin/bash'
+alias dc='devcontainer exec zsh'
+
+dc-stop() {
+  local projects
+  projects=$(docker ps -aq --filter "label=devcontainer.local_folder" \
+    | xargs -r docker inspect --format '{{ index .Config.Labels "com.docker.compose.project" }}' 2>/dev/null \
+    | sort -u | grep -v '^$')
+  for p in ${(f)projects}; do
+    docker ps -q --filter "label=com.docker.compose.project=$p" | xargs -r docker stop
+  done
+  docker ps -q --filter "label=devcontainer.local_folder" | xargs -r docker stop
+}
+
+dc-rm() {
+  local projects
+  projects=$(docker ps -aq --filter "label=devcontainer.local_folder" \
+    | xargs -r docker inspect --format '{{ index .Config.Labels "com.docker.compose.project" }}' 2>/dev/null \
+    | sort -u | grep -v '^$')
+  for p in ${(f)projects}; do
+    docker ps -aq --filter "label=com.docker.compose.project=$p" | xargs -r docker rm -f
+  done
+  docker ps -aq --filter "label=devcontainer.local_folder" | xargs -r docker rm -f
+}
