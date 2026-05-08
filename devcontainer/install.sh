@@ -1,65 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Script lives in devcontainer/, so walk one level up to get the repo root
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 log()  { printf '[dotfiles] %s\n' "$*"; }
 warn() { printf '[dotfiles] WARNING: %s\n' "$*" >&2; }
 
-SUDO=""
-if [ "$(id -u)" != "0" ]; then
-    if command -v sudo >/dev/null 2>&1; then
-        SUDO="sudo"
-    else
-        warn "Not running as root and sudo not available — apt installs will likely fail"
+check_dependencies() {
+    # Tools are expected to come from the devcontainer image
+    # This is a check, not an installer — missing tools are reported as warnings
+    # so the user can fix the image and rebuild.
+    local missing=() present=()
+    for cmd in nvim fd rg lazygit tmux yazi zoxide glow; do
+        if command -v "$cmd" >/dev/null 2>&1; then
+            present+=("$cmd")
+        else
+            missing+=("$cmd")
+        fi
+    done
+    log "Dependencies present: ${present[*]:-none}"
+    if [ ${#missing[@]} -gt 0 ]; then
+        warn "Missing dependencies: ${missing[*]}. Add them to the image via devcontainer features or the project Dockerfile."
     fi
-fi
-
-install_packages() {
-    # Package installs are non-fatal: any failure (missing apt, read-only
-    # rootfs, package not in repo) warns and continues so the rest of the
-    # script — symlinks and shell config — still runs. For containers where
-    # apt isn't usable, install these tools at image build time instead.
-    if ! command -v apt-get >/dev/null 2>&1; then
-        warn "apt-get not found — skipping package installs (this script targets Debian/Ubuntu)"
-        return 0
-    fi
-
-    log "Updating apt lists..."
-    if ! $SUDO apt-get update -qq; then
-        warn "apt-get update failed (read-only rootfs?) — skipping package installs. Install ripgrep/fd/zoxide/eza/make/gcc at devcontainer image build time instead."
-        return 0
-    fi
-
-    apt_install() {
-        log "Installing $1..."
-        $SUDO apt-get install -y --no-install-recommends "$1" \
-            || warn "Failed to install $1 — continuing"
-    }
-
-    command -v rg >/dev/null 2>&1 \
-        && log "ripgrep already installed" \
-        || apt_install ripgrep
-
-    if ! command -v fd >/dev/null 2>&1 && ! command -v fdfind >/dev/null 2>&1; then
-        apt_install fd-find
-    else
-        log "fd already available"
-    fi
-
-    command -v zoxide >/dev/null 2>&1 \
-        && log "zoxide already installed" \
-        || apt_install zoxide
-
-    # eza only ships in Debian 13 / Ubuntu 24.04+ repos — older base images
-    # hit apt_install's warn-and-continue path.
-    command -v eza >/dev/null 2>&1 \
-        && log "eza already installed" \
-        || apt_install eza
-
-    # nvim's telescope-fzf-native requires make + gcc to compile
-    command -v make >/dev/null 2>&1 || apt_install make
-    command -v gcc  >/dev/null 2>&1 || apt_install gcc
 }
 
 setup_fd_symlink() {
@@ -192,18 +155,15 @@ setup_nvim_plugins() {
 
 main() {
     log "Starting dotfiles install from $DOTFILES_DIR (user: $(id -un))"
-    install_packages
     setup_fd_symlink
+    check_dependencies
     setup_nvim
     setup_tmux
     setup_git
     setup_bash
-    setup_zsh
+    # setup_zsh
     setup_nvim_plugins
     log "Done."
-    log "  rg:   $(command -v rg   >/dev/null 2>&1 && rg   --version | head -1 || echo NOT FOUND)"
-    log "  fd:   $(command -v fd   >/dev/null 2>&1 && fd   --version           || echo NOT FOUND)"
-    log "  nvim: $(command -v nvim >/dev/null 2>&1 && nvim --version | head -1 || echo not in image)"
     [ -L "$HOME/.config/nvim" ] && log "  nvim config: symlinked OK" || warn "  nvim config: NOT symlinked"
     [ -L "$HOME/.config/tmux" ] && log "  tmux config: symlinked OK" || warn "  tmux config: NOT symlinked"
 }
