@@ -16,38 +16,50 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 install_packages() {
+    # Package installs are non-fatal: any failure (missing apt, read-only
+    # rootfs, package not in repo) warns and continues so the rest of the
+    # script — symlinks and shell config — still runs. For containers where
+    # apt isn't usable, install these tools at image build time instead.
     if ! command -v apt-get >/dev/null 2>&1; then
-        warn "apt-get not found — this script targets Debian/Ubuntu Linux"
-        return 1
+        warn "apt-get not found — skipping package installs (this script targets Debian/Ubuntu)"
+        return 0
     fi
 
     log "Updating apt lists..."
-    $SUDO apt-get update -qq
+    if ! $SUDO apt-get update -qq; then
+        warn "apt-get update failed (read-only rootfs?) — skipping package installs. Install ripgrep/fd/zoxide/eza/make/gcc at devcontainer image build time instead."
+        return 0
+    fi
+
+    apt_install() {
+        log "Installing $1..."
+        $SUDO apt-get install -y --no-install-recommends "$1" \
+            || warn "Failed to install $1 — continuing"
+    }
 
     command -v rg >/dev/null 2>&1 \
         && log "ripgrep already installed" \
-        || { log "Installing ripgrep..."; $SUDO apt-get install -y --no-install-recommends ripgrep; }
+        || apt_install ripgrep
 
     if ! command -v fd >/dev/null 2>&1 && ! command -v fdfind >/dev/null 2>&1; then
-        log "Installing fd-find..."
-        $SUDO apt-get install -y --no-install-recommends fd-find
+        apt_install fd-find
     else
         log "fd already available"
     fi
 
     command -v zoxide >/dev/null 2>&1 \
         && log "zoxide already installed" \
-        || { log "Installing zoxide..."; $SUDO apt-get install -y --no-install-recommends zoxide; }
+        || apt_install zoxide
 
-    # eza only landed in Debian 13 / Ubuntu 24.04 repos — make it non-fatal so
-    # older base images don't break the whole install.
+    # eza only ships in Debian 13 / Ubuntu 24.04+ repos — older base images
+    # hit apt_install's warn-and-continue path.
     command -v eza >/dev/null 2>&1 \
         && log "eza already installed" \
-        || { log "Installing eza..."; $SUDO apt-get install -y --no-install-recommends eza || warn "eza not available in this apt repo — skipping"; }
+        || apt_install eza
 
     # nvim's telescope-fzf-native requires make + gcc to compile
-    command -v make >/dev/null 2>&1 || $SUDO apt-get install -y --no-install-recommends make
-    command -v gcc  >/dev/null 2>&1 || $SUDO apt-get install -y --no-install-recommends gcc
+    command -v make >/dev/null 2>&1 || apt_install make
+    command -v gcc  >/dev/null 2>&1 || apt_install gcc
 }
 
 setup_fd_symlink() {
