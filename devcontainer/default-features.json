@@ -1,5 +1,4 @@
 {
-  "ghcr.io/devcontainers-extra/features/eza:1": {},
   "ghcr.io/duduribeiro/devcontainer-features/neovim:1": {},
   "ghcr.io/jsburckhardt/devcontainer-features/fd:1": {},
   "ghcr.io/jsburckhardt/devcontainer-features/fzf:1": {},
@@ -7,7 +6,6 @@
   "ghcr.io/jsburckhardt/devcontainer-features/lazygit:1": {},
   "ghcr.io/jsburckhardt/devcontainer-features/opencode:1": {},
   "ghcr.io/jsburckhardt/devcontainer-features/ripgrep:1": {},
-  "ghcr.io/jsburckhardt/devcontainer-features/rtk:1": {},
   "ghcr.io/jsburckhardt/devcontainer-features/tmux:1": {},
   "ghcr.io/jsburckhardt/devcontainer-features/yazi:1": {},
   "ghcr.io/jsburckhardt/devcontainer-features/zoxide:1": {}

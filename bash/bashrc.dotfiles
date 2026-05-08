@@ -1,6 +1,0 @@
-export TZ='Europe/Amsterdam'
-
-alias vim='nvim'
-alias v='nvim'
-alias gprune='git checkout main && git fetch --prune && git pull --rebase origin HEAD && git branch -l | xargs git branch -D'
-

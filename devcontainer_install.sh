@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Script lives in devcontainer/, so walk one level up to get the repo root
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 log()  { printf '[dotfiles] %s\n' "$*"; }
 warn() { printf '[dotfiles] WARNING: %s\n' "$*" >&2; }
@@ -99,28 +98,6 @@ setup_git() {
     log "Symlinked: $dst -> $src"
 }
 
-setup_bash() {
-    local src="$DOTFILES_DIR/bash/bashrc.dotfiles"
-    local dst="$HOME/.bashrc"
-    local marker="# >>> dotfiles >>>"
-    if [ ! -f "$src" ]; then
-        warn "bash/bashrc.dotfiles not found, skipping"
-        return 0
-    fi
-    [ -f "$dst" ] || touch "$dst"
-    if grep -qF "$marker" "$dst"; then
-        log ".bashrc dotfiles block already present"
-        return 0
-    fi
-    cat >> "$dst" <<EOF
-
-# >>> dotfiles >>>
-[ -f "$src" ] && source "$src"
-# <<< dotfiles <<<
-EOF
-    log "Appended dotfiles block to $dst (sourcing $src)"
-}
-
 setup_zsh() {
     local src="$DOTFILES_DIR/zsh/.zshrc"
     local dst="$HOME/.zshrc"
@@ -160,7 +137,6 @@ main() {
     setup_nvim
     setup_tmux
     setup_git
-    setup_bash
     # setup_zsh
     setup_nvim_plugins
     log "Done."

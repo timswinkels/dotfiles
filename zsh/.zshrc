@@ -1,5 +1,5 @@
 # If you come from bash you might have to change your $PATH.
-export PATH=$PATH:$HOME/bin:/usr/local/bin:/opt/homebrew/opt/python@3.11/libexec/bin
+export PATH=$PATH:$HOME/bin:/usr/local/bin:/opt/homebrew/opt/python@3.11/libexec/bin:$HOME/.local/bin:$HOME/.devcontainers/bin:$PATH
 export TZ='Europe/Amsterdam'
 
 # Path to your oh-my-zsh installation.
@@ -52,6 +52,9 @@ eval "$(zoxide init zsh --cmd cd)"
 
 # Direnv for
 eval "$(direnv hook zsh)"
+
+# Mise for managing language runtimes (node, python, etc.)
+eval "$(mise activate zsh)"
 
 # Devcontainer shortcuts
 # `dcbuild` bakes user tools into the image via additional features.

@@ -50,20 +50,19 @@ stow -R nvim
 
 ## Devcontainers
 
-`devcontainer/install.sh` is a non-interactive bootstrap script meant to be wired into the [`devcontainer` CLI](https://github.com/devcontainers/cli) via its dotfiles flags:
+`devcontainer_install.sh` is a non-interactive bootstrap script meant to be wired into the [`devcontainer` CLI](https://github.com/devcontainers/cli) via its dotfiles flags:
 
 ```sh
 devcontainer up \
   --dotfiles-repository https://github.com/timswinkels/dotfiles \
   --dotfiles-target-path ~/dotfiles \
-  --dotfiles-install-command devcontainer/install.sh
+  --dotfiles-install-command devcontainer_install.sh
 ```
 
 The script targets Debian/Ubuntu Linux (uses `apt-get`). What it does:
 
 - Checks for required CLI tools (`nvim`, `fd`, `rg`) and warns if any are missing. Tools are expected to come from the devcontainer image at build time (see `devcontainer/default-features.json`). On Debian/Ubuntu the script also bridges `fdfind` → `~/.local/bin/fd` so shell guards looking for `fd` work.
 - Symlinks `nvim/.config/nvim` → `~/.config/nvim`, `tmux/.config/tmux` → `~/.config/tmux`, `git/.gitconfig` → `~/.gitconfig`, and `zsh/.zshrc` → `~/.zshrc` (existing files are backed up to `*.bak`).
-- Appends a marker-guarded `source` block to `~/.bashrc` that pulls in `bash/bashrc.dotfiles` (aliases + `zoxide init`). The container's default `~/.bashrc` is preserved.
 - Headlessly pre-installs nvim plugins via `Lazy! sync` so the first launch is fast.
 
 The script is idempotent — re-running leaves correct symlinks alone and won't double-append the bash source block.
