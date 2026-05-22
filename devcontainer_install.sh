@@ -11,7 +11,7 @@ check_dependencies() {
     # This is a check, not an installer — missing tools are reported as warnings
     # so the user can fix the image and rebuild.
     local missing=() present=()
-    for cmd in nvim fd rg lazygit tmux yazi zoxide glow; do
+    for cmd in nvim lazygit tmux yazi zoxide glow; do
         if command -v "$cmd" >/dev/null 2>&1; then
             present+=("$cmd")
         else
@@ -21,27 +21,6 @@ check_dependencies() {
     log "Dependencies present: ${present[*]:-none}"
     if [ ${#missing[@]} -gt 0 ]; then
         warn "Missing dependencies: ${missing[*]}. Add them to the image via devcontainer features or the project Dockerfile."
-    fi
-}
-
-setup_fd_symlink() {
-    if command -v fd >/dev/null 2>&1; then
-        log "fd available as 'fd'"
-        return 0
-    fi
-    if command -v fdfind >/dev/null 2>&1; then
-        mkdir -p "$HOME/.local/bin"
-        ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"
-        export PATH="$HOME/.local/bin:$PATH"
-        for rc in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile"; do
-            if [ -f "$rc" ] && ! grep -q '\.local/bin' "$rc"; then
-                printf '\nexport PATH="$HOME/.local/bin:$PATH"\n' >> "$rc"
-                log "Added ~/.local/bin to PATH in $rc"
-            fi
-        done
-        log "fd symlink created: $(ls -la "$HOME/.local/bin/fd")"
-    else
-        warn "fdfind not found after install — fd will not be available"
     fi
 }
 
@@ -147,7 +126,6 @@ setup_nvim_plugins() {
 
 main() {
     log "Starting dotfiles install from $DOTFILES_DIR (user: $(id -un))"
-    setup_fd_symlink
     check_dependencies
     setup_nvim
     setup_tmux
