@@ -6,3 +6,8 @@
 
 [init]
 	defaultBranch = main
+
+# Identity lives in an untracked local file so it stays out of this public repo.
+# A missing include is silently ignored by git, so this is safe everywhere.
+[include]
+	path = ~/.gitconfig.local
