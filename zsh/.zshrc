@@ -47,14 +47,16 @@ alias ls='eza -lha --icons=auto'
 # Set up fzf key bindings and fuzzy completion
 source <(fzf --zsh)
 
-# Zoxide for fast navigation
-eval "$(zoxide init zsh --cmd cd)"
-
 # Direnv for
 eval "$(direnv hook zsh)"
 
 # Mise for managing language runtimes (node, python, etc.)
 eval "$(mise activate zsh)"
+
+# Zoxide for fast navigation.
+# Must be initialized LAST: zoxide warns if direnv/mise register their
+# chpwd/precmd hooks after it (see _ZO_DOCTOR).
+eval "$(zoxide init zsh --cmd cd)"
 
 # Devcontainer shortcuts
 # `dcbuild` bakes user tools into the image via additional features.
