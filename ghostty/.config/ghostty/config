@@ -6,6 +6,7 @@ font-size = 16
 # theme = dark:Catppuccin Mocha,light:Catppuccin Latte
 # theme = Catppuccin Latte
 theme = Catppuccin Mocha
+# theme = Gruvbox Dark Hard
 cursor-style = block
 
 # Features
