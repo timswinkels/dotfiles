@@ -68,11 +68,31 @@ export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock"
 # SSH agent: Colima (`forwardAgent: true` in ~/.colima/default/colima.yaml) links
 # the host agent to /run/host-services/ssh-auth.sock in its VM — the same path
 # Docker Desktop uses — so dc-up bind-mounts it and every dc* sets SSH_AUTH_SOCK.
-# Git identity: ~/.gitconfig.local is mounted and symlinked into the
-# container user's home by devcontainer_install.sh.
+# Git identity: a copy of ~/.gitconfig.local is mounted and symlinked into the
+# container user's home by devcontainer_install.sh. Never mount the real file:
+# the host's git config includes it, so a container writing to it could make
+# the host run arbitrary commands (core.pager, core.sshCommand, aliases, ...).
 DC_SSH_SOCK=/run/host-services/ssh-auth.sock
 alias dc-build='devcontainer build'
-alias dc-up='devcontainer up --dotfiles-repository https://github.com/timswinkels/dotfiles --dotfiles-target-path \~/dotfiles --dotfiles-install-command devcontainer_install.sh --additional-features "$(cat ~/dotfiles/devcontainer/default-features.json | jq -c)" --mount "type=bind,source=$DC_SSH_SOCK,target=$DC_SSH_SOCK" --mount "type=bind,source=$HOME/.gitconfig.local,target=/run/host-gitconfig.local" --remote-env "SSH_AUTH_SOCK=$DC_SSH_SOCK"'
+unalias dc-up 2>/dev/null  # was an alias; avoid a parse error on re-source
+dc-up() {
+  local -a mounts=(--mount "type=bind,source=$DC_SSH_SOCK,target=$DC_SSH_SOCK")
+  if [[ -f ~/.gitconfig.local ]]; then
+    # Under $HOME so Colima's default mount makes it visible to Docker
+    local copy=~/.cache/devcontainer/gitconfig.local
+    mkdir -p "${copy:h}"
+    rm -f "$copy" && cp ~/.gitconfig.local "$copy" || return
+    mounts+=(--mount "type=bind,source=$copy,target=/run/host-gitconfig.local")
+  fi
+  devcontainer up \
+    --dotfiles-repository https://github.com/timswinkels/dotfiles \
+    --dotfiles-target-path '~/dotfiles' \
+    --dotfiles-install-command devcontainer_install.sh \
+    --additional-features "$(jq -c . ~/dotfiles/devcontainer/default-features.json)" \
+    "${mounts[@]}" \
+    --remote-env "SSH_AUTH_SOCK=$DC_SSH_SOCK" \
+    "$@"
+}
 alias dc-exec='devcontainer exec --remote-env "SSH_AUTH_SOCK=$DC_SSH_SOCK"'
 alias dc='devcontainer exec --remote-env "SSH_AUTH_SOCK=$DC_SSH_SOCK" zsh'
 
