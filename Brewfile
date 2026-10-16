@@ -1,18 +1,16 @@
-brew "acli"
-brew "anomalyco/tap/opencode"
+brew "anomalyco/tap/opencode-v2", trusted: true
 brew "btop"
-brew "eza"
+brew "cloudflared"
 brew "direnv"
+brew "eza"
 brew "fd"
 brew "fzf"
 brew "gh"
 brew "glab"
 brew "glow"
-brew "granted"
 brew "jq"
-brew "kubeseal"
+brew "lazygit"
 brew "mise"
-brew "mkcert"
 brew "nvim"
 brew "python3"
 brew "ripgrep"
@@ -24,17 +22,30 @@ brew "tree"
 brew "wget"
 brew "zoxide"
 brew "zsh"
-
-cask "docker-desktop"
-cask "ghostty"
+cask "nikitabobko/tap/aerospace", trusted: true
 cask "opencode-desktop"
 
-tap "atlassian/homebrew-acli"
-tap "common-fate/granted"
+# Docker
+brew "colima"
+brew "docker"
+brew "docker-compose"
+brew "docker-credential-helper"
+brew "docker-buildx"
+brew "lazydocker"
+
+# Homebrew installs docker-compose and docker-buildx as separate CLI plugins.
+# Tell the Docker CLI where to find them by adding this to ~/.docker/config.json:
+#
+# json
+# { "cliPluginsExtraDirs": ["/opt/homebrew/lib/docker/cli-plugins"] }
+# 
+# Then start the VM:
+# 
+# bash
+# colima start --cpu 4 --memory 8 --disk 100 \
+#   --vm-type vz --vz-rosetta --mount-type virtiofs
 
 # Nerd fonts
-# tap "homebrew/cask-fonts"
 cask "font-sauce-code-pro-nerd-font"
 cask "font-fira-code-nerd-font"
 cask "font-hack-nerd-font"
-cask "nikitabobko/tap/aerospace"

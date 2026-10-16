@@ -58,6 +58,9 @@ eval "$(mise activate zsh)"
 # chpwd/precmd hooks after it (see _ZO_DOCTOR).
 eval "$(zoxide init zsh --cmd cd)"
 
+# Make lazydocker work with Docker through Colima
+export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock"
+
 # Devcontainer shortcuts
 # `dcbuild` bakes user tools into the image via additional features.
 # `dcup` brings the container up and pulls user shell config via dotfiles.
