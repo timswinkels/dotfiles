@@ -76,3 +76,9 @@ The script is idempotent — re-running leaves correct symlinks alone.
 - `dcexec`  → `devcontainer exec` (pure shorthand)
 
 The default features list lives in `devcontainer/default-features.json` — edit that file to change what gets baked in. The `dcbuild` alias re-reads it on every invocation. This mirrors what VS Code's `dev.containers.defaultFeatures` setting does, but on the CLI.
+
+### SSH agent and git identity
+
+`dc-up` bind-mounts the host ssh-agent socket at `/run/host-services/ssh-auth.sock` and the `dc*` aliases set `SSH_AUTH_SOCK` to it, so `git` over SSH works inside the container without copying keys. With Colima this needs `forwardAgent: true` in `~/.colima/default/colima.yaml` (then `colima stop && colima start`): Lima then links the agent to that path in the VM — the same path Docker Desktop uses. After a Colima restart or sleep/wake the container can hold a stale socket; recreate it with `dc-rm && dc-up`.
+
+`dc-up` also mounts `~/.gitconfig.local` (your `user.name`/`user.email`), which `devcontainer_install.sh` symlinks into the container user's home, and the script pre-seeds `known_hosts` for gitlab.com and github.com.

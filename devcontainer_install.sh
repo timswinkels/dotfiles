@@ -77,6 +77,34 @@ setup_git() {
     log "Symlinked: $dst -> $src"
 }
 
+setup_git_identity() {
+    # dc-up mounts the host's ~/.gitconfig.local (user.name/email) here
+    local src="/run/host-gitconfig.local"
+    local dst="$HOME/.gitconfig.local"
+    if [ ! -f "$src" ]; then
+        warn "$src not mounted, git identity not configured"
+        return 0
+    fi
+    ln -sf "$src" "$dst"
+    log "Symlinked: $dst -> $src"
+}
+
+setup_ssh_known_hosts() {
+    local known_hosts="$HOME/.ssh/known_hosts"
+    mkdir -p "$HOME/.ssh"
+    chmod 700 "$HOME/.ssh"
+    for host in gitlab.com github.com; do
+        if ssh-keygen -F "$host" -f "$known_hosts" >/dev/null 2>&1; then
+            continue
+        fi
+        if ssh-keyscan -t ed25519 "$host" >> "$known_hosts" 2>/dev/null; then
+            log "Added $host to known_hosts"
+        else
+            warn "Could not fetch host key for $host"
+        fi
+    done
+}
+
 detect_tz() {
     local tz=""
     if [ -L /etc/localtime ]; then
@@ -105,6 +133,13 @@ export TZ='${tz}'
 alias vim="nvim"
 alias v="nvim"
 alias ls="ls -la"
+# Host ssh-agent socket (mounted by dc-up). Colima (forwardAgent: true) and
+# Docker Desktop both expose the host agent at this path in their VM.
+if [ -S /run/host-services/ssh-auth.sock ]; then
+    export SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock
+    # The socket is owned by the VM user; chown it if this user can't write to it
+    [ -w "\$SSH_AUTH_SOCK" ] || sudo -n chown "\$(id -u)" "\$SSH_AUTH_SOCK" 2>/dev/null || true
+fi
 eval "\$(zoxide init zsh --cmd cd)"
 # <<< dotfiles-managed (devcontainer_install.sh) <<<
 EOF
@@ -130,6 +165,8 @@ main() {
     setup_nvim
     setup_tmux
     setup_git
+    setup_git_identity
+    setup_ssh_known_hosts
     setup_zsh
     setup_nvim_plugins
     log "Done."

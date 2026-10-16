@@ -65,10 +65,16 @@ export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock"
 # `dcbuild` bakes user tools into the image via additional features.
 # `dcup` brings the container up and pulls user shell config via dotfiles.
 # Edit ~/dotfiles/devcontainer/default-features.json to change defaults.
+# SSH agent: Colima (`forwardAgent: true` in ~/.colima/default/colima.yaml) links
+# the host agent to /run/host-services/ssh-auth.sock in its VM — the same path
+# Docker Desktop uses — so dc-up bind-mounts it and every dc* sets SSH_AUTH_SOCK.
+# Git identity: ~/.gitconfig.local is mounted and symlinked into the
+# container user's home by devcontainer_install.sh.
+DC_SSH_SOCK=/run/host-services/ssh-auth.sock
 alias dc-build='devcontainer build'
-alias dc-up='devcontainer up --dotfiles-repository https://github.com/timswinkels/dotfiles --dotfiles-target-path \~/dotfiles --dotfiles-install-command devcontainer_install.sh --additional-features "$(cat ~/dotfiles/devcontainer/default-features.json | jq -c)"'
-alias dc-exec='devcontainer exec'
-alias dc='devcontainer exec zsh'
+alias dc-up='devcontainer up --dotfiles-repository https://github.com/timswinkels/dotfiles --dotfiles-target-path \~/dotfiles --dotfiles-install-command devcontainer_install.sh --additional-features "$(cat ~/dotfiles/devcontainer/default-features.json | jq -c)" --mount "type=bind,source=$DC_SSH_SOCK,target=$DC_SSH_SOCK" --mount "type=bind,source=$HOME/.gitconfig.local,target=/run/host-gitconfig.local" --remote-env "SSH_AUTH_SOCK=$DC_SSH_SOCK"'
+alias dc-exec='devcontainer exec --remote-env "SSH_AUTH_SOCK=$DC_SSH_SOCK"'
+alias dc='devcontainer exec --remote-env "SSH_AUTH_SOCK=$DC_SSH_SOCK" zsh'
 
 dc-stop() {
   local projects
