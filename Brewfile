@@ -23,6 +23,7 @@ brew "tree"
 brew "wget"
 brew "zoxide"
 brew "zsh"
+cask "ghostty"
 cask "nikitabobko/tap/aerospace", trusted: true
 cask "opencode-desktop"
 
