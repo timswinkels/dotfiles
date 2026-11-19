@@ -97,6 +97,11 @@ dc-up() {
 }
 alias dc-exec='devcontainer exec --remote-env "SSH_AUTH_SOCK=$DC_SSH_SOCK"'
 alias dc='devcontainer exec --remote-env "SSH_AUTH_SOCK=$DC_SSH_SOCK" zsh'
+# Herdr detects agents by the pane's host foreground process, which for these
+# is devcontainer/docker. HERDR_AGENT tells it which screen manifest to apply.
+# Not set on `dc`: a plain container shell would then show up as an agent.
+alias dc-claude='HERDR_AGENT=claude devcontainer exec --remote-env "SSH_AUTH_SOCK=$DC_SSH_SOCK" claude'
+alias dc-opencode='HERDR_AGENT=opencode devcontainer exec --remote-env "SSH_AUTH_SOCK=$DC_SSH_SOCK" opencode'
 
 dc-stop() {
   local projects

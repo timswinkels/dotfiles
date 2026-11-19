@@ -83,6 +83,10 @@ The script is idempotent — re-running leaves correct symlinks alone.
 
 The default features list lives in `devcontainer/default-features.json` — edit that file to change what gets baked in. The `dcbuild` alias re-reads it on every invocation. This mirrors what VS Code's `dev.containers.defaultFeatures` setting does, but on the CLI.
 
+### Agents in herdr
+
+Herdr detects agents by the pane's foreground process on the host, which for a devcontainer is `devcontainer`/`docker`, so an agent started from a `dc` shell shows up as a plain terminal. Start it with `dc-claude` or `dc-opencode` instead: they set `HERDR_AGENT` on the host-side command so herdr reads the pane as that agent. Herdr's session restore won't resume container sessions, since restore runs on the host.
+
 ### SSH agent and git identity
 
 `dc-up` bind-mounts the host ssh-agent socket at `/run/host-services/ssh-auth.sock` and the `dc*` aliases set `SSH_AUTH_SOCK` to it, so `git` over SSH works inside the container without copying keys. With Colima this needs `forwardAgent: true` in `~/.colima/default/colima.yaml` (then `colima stop && colima start`): Lima then links the agent to that path in the VM — the same path Docker Desktop uses. After a Colima restart or sleep/wake the container can hold a stale socket; recreate it with `dc-rm && dc-up`.
