@@ -1,6 +1,8 @@
 # If you come from bash you might have to change your $PATH.
 export PATH=$PATH:$HOME/bin:/usr/local/bin:/opt/homebrew/opt/python@3.11/libexec/bin:$HOME/.local/bin:$HOME/.devcontainers/bin:$PATH
 export TZ='Europe/Amsterdam'
+# On macOS lazygit reads ~/Library/Application Support/lazygit; point it at the stowed config
+export LG_CONFIG_FILE="$HOME/.config/lazygit/config.yml"
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"

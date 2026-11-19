@@ -34,7 +34,7 @@ Clone the repo into your home directory, then from within `~/dotfiles` link pack
 stow nvim
 
 # Link multiple packages
-stow git zsh nvim
+stow git zsh nvim lazygit
 
 # Preview what stow would do without changing anything
 stow -n -v nvim
@@ -47,6 +47,12 @@ stow -R nvim
 ```
 
 `stow nvim` only symlinks the `nvim` config into `~/.config/nvim` — it does not touch the rest of `~/.config`.
+
+### Lazygit and delta
+
+Diffs in git and lazygit are rendered by [delta](https://github.com/dandavison/delta) (`brew "git-delta"`). Shared delta settings live in the `[delta]` section of `git/.gitconfig`; `lazygit/.config/lazygit/config.yml` adds a unified and a side-by-side renderer (cycle with `|`). If delta is missing, git falls back to `less`/`cat`.
+
+On macOS lazygit reads its config from `~/Library/Application Support/lazygit`, so `zsh/.zshrc` exports `LG_CONFIG_FILE` to point it at the stowed `~/.config/lazygit/config.yml`. LazyVim's lazygit integration (snacks.nvim) respects this variable.
 
 ## Devcontainers
 
@@ -62,7 +68,7 @@ devcontainer up \
 The script targets Debian/Ubuntu Linux (uses `apt-get`). What it does:
 
 - Checks for required CLI tools (`nvim`, `fd`, `rg`) and warns if any are missing. Tools are expected to come from the devcontainer image at build time (see `devcontainer/default-features.json`). On Debian/Ubuntu the script also bridges `fdfind` → `~/.local/bin/fd` so shell guards looking for `fd` work.
-- Symlinks `nvim/.config/nvim` → `~/.config/nvim`, `tmux/.config/tmux` → `~/.config/tmux`, `git/.gitconfig` → `~/.gitconfig`, and `zsh/.zshrc` → `~/.zshrc` (existing files are backed up to `*.bak`).
+- Symlinks `nvim/.config/nvim` → `~/.config/nvim`, `tmux/.config/tmux` → `~/.config/tmux`, `lazygit/.config/lazygit` → `~/.config/lazygit`, `git/.gitconfig` → `~/.gitconfig`, and `zsh/.zshrc` → `~/.zshrc` (existing files are backed up to `*.bak`).
 - Headlessly pre-installs nvim plugins via `Lazy! sync` so the first launch is fast.
 
 The script is idempotent — re-running leaves correct symlinks alone.

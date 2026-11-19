@@ -11,7 +11,7 @@ check_dependencies() {
     # This is a check, not an installer — missing tools are reported as warnings
     # so the user can fix the image and rebuild.
     local missing=() present=()
-    for cmd in nvim lazygit tmux yazi zoxide glow; do
+    for cmd in nvim lazygit delta tmux yazi zoxide glow; do
         if command -v "$cmd" >/dev/null 2>&1; then
             present+=("$cmd")
         else
@@ -49,6 +49,22 @@ setup_tmux() {
     if [ -e "$dst" ] || [ -L "$dst" ]; then
         if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$src" ]; then
             log "tmux config symlink already correct"
+            return 0
+        fi
+        warn "Backing up existing $dst to ${dst}.bak"
+        mv "$dst" "${dst}.bak"
+    fi
+    ln -sf "$src" "$dst"
+    log "Symlinked: $dst -> $src"
+}
+
+setup_lazygit() {
+    local src="$DOTFILES_DIR/lazygit/.config/lazygit"
+    local dst="$HOME/.config/lazygit"
+    mkdir -p "$HOME/.config"
+    if [ -e "$dst" ] || [ -L "$dst" ]; then
+        if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$src" ]; then
+            log "lazygit config symlink already correct"
             return 0
         fi
         warn "Backing up existing $dst to ${dst}.bak"
@@ -164,6 +180,7 @@ main() {
     check_dependencies
     setup_nvim
     setup_tmux
+    setup_lazygit
     setup_git
     setup_git_identity
     setup_ssh_known_hosts
@@ -172,6 +189,7 @@ main() {
     log "Done."
     [ -L "$HOME/.config/nvim" ] && log "  nvim config: symlinked OK" || warn "  nvim config: NOT symlinked"
     [ -L "$HOME/.config/tmux" ] && log "  tmux config: symlinked OK" || warn "  tmux config: NOT symlinked"
+    [ -L "$HOME/.config/lazygit" ] && log "  lazygit config: symlinked OK" || warn "  lazygit config: NOT symlinked"
 }
 
 main "$@"

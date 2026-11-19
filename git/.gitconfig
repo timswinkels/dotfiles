@@ -7,6 +7,22 @@
 [init]
 	defaultBranch = main
 
+# delta renders diffs in git and lazygit. Fall back to less/cat when delta is
+# missing (e.g. a devcontainer image not yet rebuilt): a missing diffFilter
+# would break `git add -p`.
+[core]
+	pager = command -v delta >/dev/null 2>&1 && exec delta || exec less
+[interactive]
+	diffFilter = command -v delta >/dev/null 2>&1 && exec delta --color-only || exec cat
+
+[delta]
+	# n/N jump between files when paging
+	navigate = true
+	# Can't auto-detect the background inside lazygit; Ghostty runs Catppuccin Mocha
+	dark = true
+	line-numbers = true
+	syntax-theme = Catppuccin Mocha
+
 # Identity lives in an untracked local file so it stays out of this public repo.
 # A missing include is silently ignored by git, so this is safe everywhere.
 [include]
